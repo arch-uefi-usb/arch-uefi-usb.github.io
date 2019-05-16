@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Arch installation guide</title>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="theme-color" content="#fb7299">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta property="og:title" content="Arch installation guide">
+	<meta property="og:description" content="Guide on how to install Arch Linux on UEFI computers, using systemd-boot and f2fs, targeting USB drives.">
+	<meta property="og:image" content="https://arch-uefi-usb.github.io/ogimage.png">
+	<meta property="og:image:width" content="128">
+	<meta property="og:image:height" content="128">
+	<meta property="og:locale" content="en_GB">
+	<meta property="og:locale:alternate" content="en">
+	<meta name="robots" content="index, follow">
+	<meta name="Description" content="Guide on how to install Arch Linux on UEFI computers, using systemd-boot and f2fs, targeting USB drives.">
+	<link rel="icon" type="image/png" href="favicon.png">
+	<link rel="stylesheet" type="text/css" href="css.css">
+</head>
+<body>
+	<div class="header fixed">
+		<h1>Arch installation guide</h1>
+	</div>
+	<div class="header" id="start">
+		<h1>Arch installation guide</h1>
+	</div>
+	<p>Guide on how to install Arch Linux on UEFI computers, using systemd-boot and f2fs, targeting USB drives. I'll just assume your username will be 'computer', your hostname will be 'computer' and you're using an Intel laptop.</p>
+	<h2 id="prerequisites">Prerequisites</h2>
+	<ul>
+		<li>Understanding on how to run your computer using UEFI.</li>
+		<li>A copy of the <a href="https://www.archlinux.org/download/">Arch Linux installer</a>, an existing Arch Linux installation, or the <a href="https://antergos.com/try-it/">Antergos Live ISO</a>. I'm going to assume you're using a graphical environment.</li>
+		<li>When dualbooting with Windows on the same disk, use Windows' disk management to shrink the Windows install.</li>
+		<li>A backup, I suppose.</li>
+	</ul>
+	<h2 id="partitioning">Partitioning</h2>
+	<p>There are two ways to go about partitioning, one way is the graphical, GParted way, and the other is the 'nerd cred' way. (The 'nerd cred' way is using <code>lsblk</code>, to find your disk, then <code>gdisk /dev/sdx</code> to create a GPT layout, <code>cgdisk /dev/sdx</code> to create the partitions using <code>EF00</code> for the ESP, and <code>8200</code> for the swap partition. GParted is much easier, but won't make us look cool on the internet.) Let's be serious now:</p>
+	<ul>
+		<li>(If existing Arch source: <code>pacman -Sy arch-install-scripts gparted f2fs-tools --needed</code>)</li>
+		<li>Run GParted, find target disk, <ul>
+			<li>if dualbooting with Windows, create one large partition with type 'cleared'.</li>
+			<li>if the entire disk is for Arch, create a 'gpt' partition table, and create a 100 MiB+ FAT32 partition, as well as one large cleared partition.</li>
+		</ul></li>
+		<li>Write changes to disk and exit GParted.</li>
+		<li>Open terminal as root (<code>sudo su</code>), use <code>lsblk</code> to confirm target partitions. Run <code>mkfs.f2fs /dev/sdxy</code>.</li>
+		<li>Mount the partitions:<ul>
+			<li><code>mount -o noatime,nobarrier,discard /dev/sdxy /mnt</code></li>
+			<li><code>mkdir -p /mnt/boot /mnt/var/cache/pacman/pkg /mnt/var/log /mnt/var/tmp</code></li>
+			<li><code>mount -t tmpfs tmpfs /mnt/var/cache/pacman/pkg</code></li>
+			<li><code>mount -t tmpfs tmpfs /mnt/var/log</code></li>
+			<li><code>mount -t tmpfs tmpfs /mnt/var/tmp</code></li>
+			<li><code>mount -o noatime /dev/sdxz /mnt/boot</code></li>
+		</ul></li>
+	</ul>
+	<h2 id="installation">Installation</h2>
+	<ul>
+		<li>Use the <a href="https://www.archlinux.org/mirrorlist/">Pacman Mirrorlist Generator</a> and use that URL; I will use NL with https & ipv6.</li>
+		<li><code>curl -o /etc/pacman.d/mirrorlist "https://www.archlinux.org/mirrorlist/?country=NL&protocol=https&ip_version=6"</code></li>
+		<li><code>sed -i 's/#Server/Server/g' /etc/pacman.d/mirrorlist</code></li>
+		<li><code>gedit /etc/pacman.conf</code> and comment out the Antergos repo, and add:</li>
+<li><pre><code>[maximbaz]
+Server = https://pkgbuild.com/~maximbaz/repo/</code></pre></li>
+		<li><code>pacstrap /mnt $(pacman -Sqg base | sed 's/^linux$/&-zen/') adobe-source-code-pro-fonts adobe-source-sans-pro-fonts adobe-source-serif-pro-fonts base bash-completion chrome-gnome-shell chromium-vaapi compsize f2fs-tools ffmpeg gnome gnome-initial-setup gnome-tweaks intel-ucode libva-intel-driver libva-utils lrzip mpv networkmanager noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra ntfs-3g optipng p7zip powertop sudo systemd-resolvconf tlp unace unrar vulkan-intel xf86-video-intel xorg youtube-dl zstd</code></li>
+		<li>Wait.</li>
+		<li><code>sed -i 's/#en/en/g' /mnt/etc/locale.gen</code></li>
+		<li><code>echo computer > /mnt/etc/hostname</code></li>
+		<li><code>curl -o /mnt/etc/fonts/local.conf "https://pastebin.com/raw/t1Uu6Z4R"</code></li>
+		<li><code>curl -o /mnt/etc/X11/xorg.conf.d/50-mouse-acceleration.conf "https://pastebin.com/raw/L24zjurp"</code></li>
+		<li><code>genfstab -U -p /mnt >> /mnt/etc/fstab</code></li>
+		<li><code>gedit /mnt/etc/fstab</code> and add the following lines to the file:</li>
+<li><pre><code>tmpfs /var/cache/pacman/pkg tmpfs defaults 0 0
+tmpfs /var/log tmpfs defaults 0 0
+tmpfs /var/tmp tmpfs defaults 0 0</code></pre></li>
+		<li><code>gedit /mnt/etc/mkinitcpio.conf</code> and add a HOOKS line with, and set lz4 with -9:</li>
+		<li><code>HOOKS=(systemd modconf block fsck filesystems)</code></li>
+		<li><code>gedit /mnt/etc/mkinitcpio.d/linux-zen.preset</code> and remove the 'fallback' part.</li>
+		<li><code>rm -rf /mnt/boot/initramfs-linux-zen-fallback.img</code></li>
+		<li><code>gedit /mnt/etc/gdm/custom.conf</code> And uncomment the disable Wayland option.</li>
+		<li><code>gedit /mnt/etc/pacman.conf</code></li>
+<li><pre><code>[maximbaz]
+Server = https://pkgbuild.com/~maximbaz/repo/</code></pre></li>
+		<li><code>arch-chroot /mnt</code></li>
+		<li><code>pacman -R linux</code></li>
+		<li><code>locale-gen</code></li>
+		<li><code>systemctl enable gdm NetworkManager tlp tlp-sleepy</code></li>
+		<li><code>useradd -m -G wheel computer</code></li>
+		<li><code>passwd</code></li>
+		<li><code>passwd computer</code></li>
+		<li><code>EDITOR=nano visudo</code></li>
+		<li>Uncomment '%wheel ALL=(ALL) ALL'</li>
+		<li><code>bootctl install</code></li>
+		<li><code>mkinitcpio -P</code></li>
+		<li><code>exit</code></li>
+		<li>Now, open a new terminal tab/window and login as root there as well.</li>
+		<li><code>blkid</code> and find the partuuid of your target root.</li>
+		<li><code>gedit /mnt/boot/loader/loader.conf</code> and set <code>console-mode max</code>.</li>
+		<li><code>gedit /mnt/boot/loader/entries/linux-zen.conf</code>, add the following and replace the x with the partuuid found before:</li>
+<li><pre><code>title Linux Zen
+linux /vmlinuz-linux-zen
+initrd /intel-ucode.img
+initrd /initramfs-linux-zen.img
+options root=PARTUUID=x ro i915.modeset=1 i915.enable_dc=2 i915.enable_fbc=1 i915.enable_psr=1 i915.disable_power_well=0 i915.fastboot=1 nopti nospectre_v2 spectre_v2_user=off spec_store_bypass_disable=off l1tf=off</code></pre></li>
+	</ul>
+	<h2>Post-installation recommendations</h2>
+	<ul>
+		<li><a href="https://extensions.gnome.org/extension/1262/bing-wallpaper-changer/">Bing Wallpaper Changer by neffo</a></li>
+		<li><a href="https://extensions.gnome.org/extension/307/dash-to-dock/">Dash to Dock by michele_g</a></li>
+		<li><a href="https://extensions.gnome.org/extension/1403/remove-alttab-delay/">Remove Alt+Tab Delay by tetrafox</a></li>
+		<li>Open gnome-tweaks and enable max and min window buttons, as well as setting mouse accel and fonts.</li>
+		<li>Use <code>sudo pacman -Syu</code> to update and install, <code>sudo pacman -Sys</code> to search, <code>sudo pacman -R</code> to remove, and <code>sudo pacman -R $(pacman -Qdtq)</code> to autoremove</li>
+		<li>Download <a href="https://dl.google.com/linux/direct/google-chrome-unstable_current_amd64.deb">Google Chrome Dev</a> and open it with Archive Manager. Find and extract the libwidevinecdm.so file, then open a terminal in that folder and run <code>sudo cp libwidevinecdm.so /usr/lib/chromium/libwidevinecdm.so</code></li>
+	</ul>
+</body>
+</html>

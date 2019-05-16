@@ -1,0 +1,56 @@
+* {
+    font-family: "Segoe UI","Microsoft Yahei",Ubuntu,system-ui,sans-serif;
+    margin: 0;
+    overflow-x: hidden;
+    padding: 0
+}
+
+.fixed {
+    position: fixed;
+    top: 0
+}
+
+.header {
+    background: #fb7299;
+    border-bottom: 1ch solid #5788ce;
+    color: #fff;
+    padding-left: 1ch;
+    width: 100%
+}
+
+.headerlink {
+    color: #fff;
+    text-decoration: none
+}
+
+a {
+    color: #5788ce
+}
+
+code {
+    background: rgba(251,116,155,.1);
+    font-family: Consolas,"Ubuntu Mono","Source Code Pro",monospace
+}
+
+h2,p,ul {
+    padding-left: 1ch;
+    padding-right: 1ch
+}
+
+h2 {
+    color: #fb7299
+}
+
+img,video {
+    display: block;
+    max-height: 90vh;
+    max-width: 100%
+}
+
+p {
+    max-width: 70ch
+}
+
+p,ul {
+    line-height: 1.5
+}
