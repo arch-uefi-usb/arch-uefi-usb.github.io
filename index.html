@@ -3,7 +3,7 @@
 <head>
 	<title>Arch installation guide</title>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-	<meta name="theme-color" content="#fb7299">
+	<meta name="theme-color" content="#ff8080">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta property="og:title" content="Arch installation guide">
 	<meta property="og:description" content="Guide on how to install Arch Linux on UEFI computers, using systemd-boot and F2FS, targeting USB drives.">
@@ -87,14 +87,14 @@ Server = https://pkgbuild.com/~maximbaz/repo/</textarea></li>
 tmpfs /var/log tmpfs defaults 0 0
 tmpfs /var/tmp tmpfs defaults 0 0</textarea></li>
 		<li class="green">The autodetect hook (targeted init in Debian terms) does not always work well with USB installations, so we have to remove it, which means the fallback (generic in Debian terms) option is redundant.</li>
+		<li><code>rm -rf /mnt/boot/initramfs-linux-zen-fallback.img</code></li>
+		<li><code>sed -i 's/HOOKS/#HOOKS/g' /mnt/etc/mkinitcpio.conf</code></li>
+		<li><code>sed -i "s/ 'fallback'//g" /mnt/etc/mkinitcpio.d/linux-zen.preset</code></li>
 		<li><code>gedit /mnt/etc/mkinitcpio.conf</code> and add the following lines to the bottom of the file:</li>
 <li><textarea readonly cols="46" rows="3" class="blue">HOOKS=(systemd modconf block fsck filesystems)
 COMPRESSION="lz4"
 COMPRESSION_OPTIONS=(-9)</textarea></li>
-		<li><code>rm -rf /mnt/boot/initramfs-linux-zen-fallback.img</code></li>
-		<li><code>sed -i 's/HOOKS/#HOOKS/g' /mnt/etc/mkinitcpio.conf</code></li>
-		<li><code>sed -i "s/ 'fallback'//g" /mnt/etc/mkinitcpio.d/linux-zen.preset</code></li>
-		<li><code>gedit /mnt/etc/pacman.conf</code></li>
+		<li><code>gedit /mnt/etc/pacman.conf</code> and add:</li>
 <li><textarea readonly cols="45" rows="2" class="blue">[maximbaz]
 Server = https://pkgbuild.com/~maximbaz/repo/</textarea></li>
 		<li class="green">If you have some favourite fonts and you can read basic XML, then I recommend you go look at the pastebins and perhaps tinker and tweak a bit.</li>
@@ -112,9 +112,9 @@ Server = https://pkgbuild.com/~maximbaz/repo/</textarea></li>
 		<li><code>bootctl install</code></li>
 		<li><code>mkinitcpio -P</code></li>
 		<li><code>exit</code></li>
+		<li><code>echo "console-mode max" >> /mnt/boot/loader/loader.conf</code></li>
 		<li>Now, open a new terminal tab/window.</li>
 		<li><code>blkid</code> and find the partuuid of your target root.</li>
-		<li><code>gedit /mnt/boot/loader/loader.conf</code> and set <code>console-mode max</code>.</li>
 		<li><code>gedit /mnt/boot/loader/entries/linux-zen.conf</code>, add the following and replace the x with the partuuid found before:</li>
 <li><textarea readonly cols="80" rows="7" class="blue">title Linux Zen
 linux /vmlinuz-linux-zen
