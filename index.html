@@ -6,14 +6,14 @@
 	<meta name="theme-color" content="#fb7299">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta property="og:title" content="Arch installation guide">
-	<meta property="og:description" content="Guide on how to install Arch Linux on UEFI computers, using systemd-boot and f2fs, targeting USB drives.">
+	<meta property="og:description" content="Guide on how to install Arch Linux on UEFI computers, using systemd-boot and F2FS, targeting USB drives.">
 	<meta property="og:image" content="https://arch-uefi-usb.github.io/ogimage.png">
 	<meta property="og:image:width" content="128">
 	<meta property="og:image:height" content="128">
 	<meta property="og:locale" content="en_GB">
 	<meta property="og:locale:alternate" content="en">
 	<meta name="robots" content="index, follow">
-	<meta name="Description" content="Guide on how to install Arch Linux on UEFI computers, using systemd-boot and f2fs, targeting USB drives.">
+	<meta name="Description" content="Guide on how to install Arch Linux on UEFI computers, using systemd-boot and F2FS, targeting USB drives.">
 	<link rel="icon" type="image/png" href="favicon.png">
 	<link rel="stylesheet" type="text/css" href="css.css">
 </head>
@@ -24,24 +24,34 @@
 	<div class="header" id="start">
 		<h1>Arch installation guide</h1>
 	</div>
-	<p>Guide on how to install Arch Linux on UEFI computers, using systemd-boot and f2fs, targeting USB drives. I'll just assume your username will be 'computer', your hostname will be 'computer' and you're using an Intel laptop.</p>
+	<p>Guide on how to install Arch Linux on UEFI computers, using systemd-boot and f2fs, targeting USB drives. The reason for making this was that I always forgot something during an installation, so I wrote down my steps, so I could copy & paste a list of commands so I can have an installation in just a few minutes.</p>
+	<p>If you use a computer with Intel Skylake graphics or later, you can use everything listed here. If your hardware is slightly different, you can still look at it to see what's useful to you.</p>
+	<p>What&Why F2FS? <a href="https://www.kernel.org/doc/Documentation/filesystems/f2fs.txt">F2FS</a> is designed for flash storage, as a result a tiny USB flash drive can perform terrific for many tasks. Another good option would be btrfs with its transparent compression. What&Why systemd-boot? <a href="https://www.freedesktop.org/software/systemd/man/systemd-boot.html">systemd-boot</a> is a boot loader that is required to boot into your OS, it is small and simple, which is great for slow storage, and can boot any kind of root system. An alternative would be GRUB, though when I wrote this it couldn't boot f2fs yet, and also no zstd compressed btrfs.</p>
+	<div class="red"><p>This is text that you enter directly into a terminal window.</p></div>
+	<div class="blue"><p>This is text that you enter directly into a text editor.</p></div>
+	<div class="green"><p>This is text that provides explanations as to what is being done. Skippable.</p></div>
+	<div class="grey"><p>This is text that is completely unimportant and there's no need to read it.</p></div>
+	<h2>Hang on, what's Arch Linux?</h2>
+	<p>I've run into websites so many times where I had no clue what I was looking at, that I know that I shouldn't make one myself.</p>
+	<p>Basically, <a href="https://en.wikipedia.org/wiki/Linux">Linux</a> is a <a href="https://en.wikipedia.org/wiki/Operating_system">computer operating system</a>, like <a href="https://en.wikipedia.org/wiki/Microsoft_Windows">Windows</a> or <a href="https://en.wikipedia.org/wiki/IOS">iOS</a> or <a href="https://en.wikipedia.org/wiki/Android_(operating_system)">Android</a>, and it has a bunch of variations. Android is one, <a href="https://en.wikipedia.org/wiki/Ubuntu">Ubuntu</a> is one, <a href="https://en.wikipedia.org/wiki/Arch_Linux">Arch Linux</a> is one, and there are <a href="https://en.wikipedia.org/wiki/List_of_Linux_distributions">many others</a>. This website basically outlines and explains how to put software on a USB flash drive.</p>
 	<h2 id="prerequisites">Prerequisites</h2>
 	<ul>
-		<li>Understanding on how to run your computer using UEFI.</li>
-		<li>A copy of the <a href="https://www.archlinux.org/download/">Arch Linux installer</a>, an existing Arch Linux installation, or the <a href="https://antergos.com/try-it/">Antergos Live ISO</a>. I'm going to assume you're using a graphical environment.</li>
-		<li>When dualbooting with Windows on the same disk, use Windows' disk management to shrink the Windows install.</li>
-		<li>A backup, I suppose.</li>
+		<li>1) Understanding on how to run your computer using UEFI.</li>
+		<li>2) A copy of the <a href="https://www.archlinux.org/download/">Arch Linux installer</a>, an existing Arch Linux installation, or the <a href="https://antergos.com/try-it/">Antergos Live ISO</a>.</li>
+		<li>This is written from the perspective of booting the Antergos image in VirtualBox with the USB drive passed through.	</li>
+		<li>3) When dualbooting with Windows on the same disk, use Windows' disk management to shrink the Windows install.</li>
+		<li>4) A backup, I suppose.</li>
 	</ul>
 	<h2 id="partitioning">Partitioning</h2>
-	<p>There are two ways to go about partitioning, one way is the graphical, GParted way, and the other is the 'nerd cred' way. (The 'nerd cred' way is using <code>lsblk</code>, to find your disk, then <code>gdisk /dev/sdx</code> to create a GPT layout, <code>cgdisk /dev/sdx</code> to create the partitions using <code>EF00</code> for the ESP, and <code>8200</code> for the swap partition. GParted is much easier, but won't make us look cool on the internet.) Let's be serious now:</p>
 	<ul>
-		<li>(If existing Arch source: <code>pacman -Sy arch-install-scripts gparted f2fs-tools --needed</code>)</li>
+		<li>Start up VirtualBox and create a Virtual Machine without a disk, either tell it that it's a Windows 10 VM during creation, or make sure to toggle the option to set it as EFI machine in the configuration. You'll need about 3GB+ RAM assigned to the VM to reduce writes to the disk.</li>
+		<li>Select the Antergos .iso file, and pass through your target disk.</li>
 		<li>Run GParted, find target disk, <ul>
 			<li>if dualbooting with Windows, create one large partition with type 'cleared'.</li>
-			<li>if the entire disk is for Arch, create a 'gpt' partition table, and create a 100 MiB+ FAT32 partition, as well as one large cleared partition.</li>
+			<li>if the entire disk is for Arch, create a 'gpt' partition table, and create a 100 MiB+ FAT32 partition, as well as one large cleared partition. After applying, right-click the FAT32 partition, select 'manage flags', and toggle the ESP box.</li>
 		</ul></li>
-		<li>Write changes to disk and exit GParted.</li>
-		<li>Open terminal as root (<code>sudo su</code>), use <code>lsblk</code> to confirm target partitions. Run <code>mkfs.f2fs /dev/sdxy</code>.</li>
+		<li>Open a terminal, and run <code>sudo su</code>. Use <code>lsblk</code> to confirm target partitions again.</li>
+		<li>Run <code>mkfs.f2fs /dev/sdxy</code> on the large partition.</li>
 		<li>Mount the partitions:<ul>
 			<li><code>mount -o noatime,nobarrier,discard /dev/sdxy /mnt</code></li>
 			<li><code>mkdir -p /mnt/boot /mnt/var/cache/pacman/pkg /mnt/var/log /mnt/var/tmp</code></li>
@@ -51,37 +61,49 @@
 			<li><code>mount -o noatime /dev/sdxz /mnt/boot</code></li>
 		</ul></li>
 	</ul>
+	<div class="green"><p>The main reason to use a virtual machine is so you always have full access to the host machine still, for resources that you might like, or just to play music in the background, or play solitaire while packages are downloading. ESP is a partition used for every UEFI installation, which is a FAT partition, which always writes changes to files whenever you access them and reducing writes is key for a USB key, so we specify the "noatime" option which stops that from happening. We use the same thing for the main partition alongside nobarrier, which disables write barriers which makes us have more throughput at the cost of increased risk of losing data during a sudden power failure. If you're opting for btrfs instead, then use <code>mkfs.btrfs</code> instead of f2fs, and specify ",compress=zstd" after the discard option. The three "tmpfs" mounts are making Linux use RAM to store log files and some temporary files, which again greatly reduces writes to the flash storage.</p></div>
+	<div class="grey"><p>Just in case you're using the standard Arch installation image, where you only have a command line, in order to partition, you'll need to use <code>lsblk</code> to identify your target disk. Then <code>gdisk /dev/sdx</code> to create a GPT layout. <code>cgdisk /dev/sdx</code> to create the partitions using <code>EF00</code> for the ESP, and <code>8200</code> for the swap partition.</p>
+	<p>If you're using an existing Arch installation to install from, run <code>pacman -Sy arch-install-scripts gparted f2fs-tools --needed</code></p></div>
 	<h2 id="installation">Installation</h2>
 	<ul>
-		<li>Use the <a href="https://www.archlinux.org/mirrorlist/">Pacman Mirrorlist Generator</a> and use that URL; I will use NL with https & ipv6.</li>
-		<li><code>curl -o /etc/pacman.d/mirrorlist "https://www.archlinux.org/mirrorlist/?country=NL&protocol=https&ip_version=6"</code></li>
+		<li>Use the <a href="https://www.archlinux.org/mirrorlist/">Pacman Mirrorlist Generator</a> and use that URL; I will use JP with https & ipv6.</li>
+		<li><code>curl -o /etc/pacman.d/mirrorlist "https://www.archlinux.org/mirrorlist/?country=JP&protocol=https&ip_version=6"</code></li>
 		<li><code>sed -i 's/#Server/Server/g' /etc/pacman.d/mirrorlist</code></li>
 		<li><code>gedit /etc/pacman.conf</code> and comment out the Antergos repo, and add:</li>
-<li><pre><code>[maximbaz]
-Server = https://pkgbuild.com/~maximbaz/repo/</code></pre></li>
-		<li><code>pacstrap /mnt $(pacman -Sqg base | sed 's/^linux$/&-zen/') adobe-source-code-pro-fonts adobe-source-sans-pro-fonts adobe-source-serif-pro-fonts base bash-completion chrome-gnome-shell chromium-vaapi compsize f2fs-tools ffmpeg gnome gnome-initial-setup gnome-tweaks intel-ucode libva-intel-driver libva-utils lrzip mpv networkmanager noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra ntfs-3g optipng p7zip powertop sudo systemd-resolvconf tlp unace unrar vulkan-intel xf86-video-intel xorg youtube-dl zstd</code></li>
+<li><textarea readonly cols="45" rows="2" class="blue">[maximbaz]
+Server = https://pkgbuild.com/~maximbaz/repo/</textarea></li>
+		<li><textarea readonly cols="80" rows="8" class="red">pacman -Syy arch-install-scripts --needed && pacstrap /mnt $(pacman -Sqg base | sed 's/^linux$/&-zen/') adobe-source-code-pro-fonts adobe-source-sans-pro-fonts adobe-source-serif-pro-fonts bash-completion chrome-gnome-shell chromium-vaapi f2fs-tools ffmpeg gnome gnome-initial-setup gnome-tweaks intel-ucode libva-intel-driver libva-utils lrzip mpv networkmanager noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra ntfs-3g optipng p7zip powertop sudo systemd-resolvconf tlp unace unrar vulkan-intel xf86-video-intel xorg youtube-dl zstd</textarea></li>
+		<li class="green">It's alphabetised, so if you prefer using a different desktop you can easily remove gnome* from it. Personal favourites of mine are KDE (plasma-meta sddm), Deepin (deepin deepin-extra) and MATE (mate mate-extra lightdm). As far as I'm aware, chromium-vaapi is the only web browser with accelerated video decoding, sadly.</li>
 		<li>Wait.</li>
+		<li class="green">Below enables English languages and locales, but if you want to have Chinese instead, for example, then replace "#en" and "en" with "#zh" and "zh". It also disables Wayland, because we need Xorg for chromium-vaapi. hostname is the name your installation will have on a network, and it lets mpv use hardware decoding for video.</li>
 		<li><code>sed -i 's/#en/en/g' /mnt/etc/locale.gen</code></li>
+		<li><code>sed -i 's/#WaylandEnable/WaylandEnable/g' /mnt/etc/gdm/custom.conf</code></li>
 		<li><code>echo computer > /mnt/etc/hostname</code></li>
+		<li><code>echo hwdec=auto > /mnt/etc/mpv/mpv.conf</code></li>
+		<li class="green">Did you know that nowadays you don't have to use an fstab anymore, allowing for a <a href="https://en.wikipedia.org/wiki/State_(computer_science)">stateless</a> machine? We will use it, so we are assured of the mount options set earlier, and so we can add the RAM storage for those heavy write locations.</li>
+		<li><code>genfstab -U -p /mnt >> /mnt/etc/fstab</code></li>
+		<li><code>gedit /mnt/etc/fstab</code> and add the following lines to the bottom of the file:</li>
+<li><textarea readonly cols="46" rows="3" class="blue">tmpfs /var/cache/pacman/pkg tmpfs defaults 0 0
+tmpfs /var/log tmpfs defaults 0 0
+tmpfs /var/tmp tmpfs defaults 0 0</textarea></li>
+		<li class="green">The autodetect hook (targeted init in Debian terms) does not always work well with USB installations, so we have to remove it, which means the fallback (generic in Debian terms) option is redundant.</li>
+		<li><code>gedit /mnt/etc/mkinitcpio.conf</code> and add the following lines to the bottom of the file:</li>
+<li><textarea readonly cols="46" rows="3" class="blue">HOOKS=(systemd modconf block fsck filesystems)
+COMPRESSION="lz4"
+COMPRESSION_OPTIONS=(-9)</textarea></li>
+		<li><code>rm -rf /mnt/boot/initramfs-linux-zen-fallback.img</code></li>
+		<li><code>sed -i 's/HOOKS/#HOOKS/g' /mnt/etc/mkinitcpio.conf</code></li>
+		<li><code>sed -i "s/ 'fallback'//g" /mnt/etc/mkinitcpio.d/linux-zen.preset</code></li>
+		<li><code>gedit /mnt/etc/pacman.conf</code></li>
+<li><textarea readonly cols="45" rows="2" class="blue">[maximbaz]
+Server = https://pkgbuild.com/~maximbaz/repo/</textarea></li>
+		<li class="green">If you have some favourite fonts and you can read basic XML, then I recommend you go look at the pastebins and perhaps tinker and tweak a bit.</li>
 		<li><code>curl -o /mnt/etc/fonts/local.conf "https://pastebin.com/raw/t1Uu6Z4R"</code></li>
 		<li><code>curl -o /mnt/etc/X11/xorg.conf.d/50-mouse-acceleration.conf "https://pastebin.com/raw/L24zjurp"</code></li>
-		<li><code>genfstab -U -p /mnt >> /mnt/etc/fstab</code></li>
-		<li><code>gedit /mnt/etc/fstab</code> and add the following lines to the file:</li>
-<li><pre><code>tmpfs /var/cache/pacman/pkg tmpfs defaults 0 0
-tmpfs /var/log tmpfs defaults 0 0
-tmpfs /var/tmp tmpfs defaults 0 0</code></pre></li>
-		<li><code>gedit /mnt/etc/mkinitcpio.conf</code> and add a HOOKS line with, and set lz4 with -9:</li>
-		<li><code>HOOKS=(systemd modconf block fsck filesystems)</code></li>
-		<li><code>gedit /mnt/etc/mkinitcpio.d/linux-zen.preset</code> and remove the 'fallback' part.</li>
-		<li><code>rm -rf /mnt/boot/initramfs-linux-zen-fallback.img</code></li>
-		<li><code>gedit /mnt/etc/gdm/custom.conf</code> And uncomment the disable Wayland option.</li>
-		<li><code>gedit /mnt/etc/pacman.conf</code></li>
-<li><pre><code>[maximbaz]
-Server = https://pkgbuild.com/~maximbaz/repo/</code></pre></li>
 		<li><code>arch-chroot /mnt</code></li>
-		<li><code>pacman -R linux</code></li>
 		<li><code>locale-gen</code></li>
-		<li><code>systemctl enable gdm NetworkManager tlp tlp-sleepy</code></li>
+		<li class="green">If you chose MATE or Deepin earlier, replace gdm with lightdm, if you chose KDE earlier, replace gdm with sddm. Replace "computer" with a lowercase single word username that you like. The rest enables the sudo command in the terminal, installs systemd-boot and regenerates the initramfs with the changes we made earlier.</li>
+		<li><code>systemctl enable gdm NetworkManager tlp tlp-sleep</code></li>
 		<li><code>useradd -m -G wheel computer</code></li>
 		<li><code>passwd</code></li>
 		<li><code>passwd computer</code></li>
@@ -90,24 +112,26 @@ Server = https://pkgbuild.com/~maximbaz/repo/</code></pre></li>
 		<li><code>bootctl install</code></li>
 		<li><code>mkinitcpio -P</code></li>
 		<li><code>exit</code></li>
-		<li>Now, open a new terminal tab/window and login as root there as well.</li>
+		<li>Now, open a new terminal tab/window.</li>
 		<li><code>blkid</code> and find the partuuid of your target root.</li>
 		<li><code>gedit /mnt/boot/loader/loader.conf</code> and set <code>console-mode max</code>.</li>
 		<li><code>gedit /mnt/boot/loader/entries/linux-zen.conf</code>, add the following and replace the x with the partuuid found before:</li>
-<li><pre><code>title Linux Zen
+<li><textarea readonly cols="80" rows="7" class="blue">title Linux Zen
 linux /vmlinuz-linux-zen
 initrd /intel-ucode.img
 initrd /initramfs-linux-zen.img
-options root=PARTUUID=x ro i915.modeset=1 i915.enable_dc=2 i915.enable_fbc=1 i915.enable_psr=1 i915.disable_power_well=0 i915.fastboot=1 nopti nospectre_v2 spectre_v2_user=off spec_store_bypass_disable=off l1tf=off</code></pre></li>
+options root=PARTUUID=x ro i915.modeset=1 i915.enable_dc=2 i915.enable_fbc=1 i915.enable_psr=1 i915.disable_power_well=0 i915.fastboot=1 nopti nospectre_v2 spectre_v2_user=off spec_store_bypass_disable=off l1tf=off</textarea></li>
 	</ul>
+	<div class="green"><p>Those are a lot of boot options. If you're using kernel 5.2, you can replace everything after i915 with just "mitigations=off". They're settings to reduce the impact of some theoretical security impacts, if you're reading this by the time there are real viruses which can affect you which make use of spectre/meltdown, then I highly recommend you do remove those mitigation disablers. The i915 ones help increase battery life.</p></div>
 	<h2>Post-installation recommendations</h2>
 	<ul>
-		<li><a href="https://extensions.gnome.org/extension/1262/bing-wallpaper-changer/">Bing Wallpaper Changer by neffo</a></li>
 		<li><a href="https://extensions.gnome.org/extension/307/dash-to-dock/">Dash to Dock by michele_g</a></li>
+		<li><a href="https://extensions.gnome.org/extension/1262/bing-wallpaper-changer/">Bing Wallpaper Changer by neffo</a></li>
 		<li><a href="https://extensions.gnome.org/extension/1403/remove-alttab-delay/">Remove Alt+Tab Delay by tetrafox</a></li>
 		<li>Open gnome-tweaks and enable max and min window buttons, as well as setting mouse accel and fonts.</li>
 		<li>Use <code>sudo pacman -Syu</code> to update and install, <code>sudo pacman -Sys</code> to search, <code>sudo pacman -R</code> to remove, and <code>sudo pacman -R $(pacman -Qdtq)</code> to autoremove</li>
 		<li>Download <a href="https://dl.google.com/linux/direct/google-chrome-unstable_current_amd64.deb">Google Chrome Dev</a> and open it with Archive Manager. Find and extract the libwidevinecdm.so file, then open a terminal in that folder and run <code>sudo cp libwidevinecdm.so /usr/lib/chromium/libwidevinecdm.so</code></li>
+		<li>As regular user, run <code>curl -o ~/.config/chromium-flags.conf "https://pastebin.com/raw/naLpJD0y"</code> to disable the smooth scrolling and enable more GPU acceleration in Chromium.</li>
 	</ul>
 </body>
 </html>

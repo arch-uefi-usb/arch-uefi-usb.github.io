@@ -11,8 +11,8 @@
 }
 
 .header {
-    background: #fb7299;
-    border-bottom: 1ch solid #5788ce;
+    background: #ff8080;
+    border-bottom: 1ch solid #8080ff;
     color: #fff;
     padding-left: 1ch;
     width: 100%
@@ -23,13 +23,28 @@
     text-decoration: none
 }
 
-a {
-    color: #5788ce
+.pinkxample a,a:link,a:visited {
+    color: #8080ff
 }
 
-code {
-    background: rgba(251,116,155,.1);
+code,textarea {
     font-family: Consolas,"Ubuntu Mono","Source Code Pro",monospace
+}
+
+.red,code {
+    background: rgba(255,128,128,.25)
+}
+
+.blue {
+    background: rgba(128,128,255,.25)
+}
+
+.grey {
+    background: rgba(128,128,128,.25)
+}
+
+.green {
+    background: rgba(128,255,128,.25)
 }
 
 h2,p,ul {
@@ -38,7 +53,7 @@ h2,p,ul {
 }
 
 h2 {
-    color: #fb7299
+    color: #ff8080
 }
 
 img,video {
@@ -53,8 +68,4 @@ p {
 
 p,ul {
     line-height: 1.5
-}
-
-pre {
-    background-color: rgba(85,135,206,.1)
 }
