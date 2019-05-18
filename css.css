@@ -23,7 +23,11 @@
     text-decoration: none
 }
 
-.pinkxample a,a:link,a:visited {
+.hidden {
+    visibility: hidden
+}
+
+a,a:link,a:visited {
     color: #8080ff
 }
 
