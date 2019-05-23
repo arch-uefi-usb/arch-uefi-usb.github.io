@@ -116,11 +116,11 @@ Server = https://pkgbuild.com/~maximbaz/repo/</textarea></li>
 		<li>Now, open a new terminal tab/window.</li>
 		<li><code>blkid</code> and find the partuuid of your target root.</li>
 		<li><code>gedit /mnt/boot/loader/entries/linux-zen.conf</code>, add the following and replace the x with the partuuid found before:</li>
-<li><textarea readonly cols="80" rows="7" class="blue">title Linux Zen
+<li><textarea readonly cols="80" rows="8" class="blue">title Linux Zen
 linux /vmlinuz-linux-zen
 initrd /intel-ucode.img
 initrd /initramfs-linux-zen.img
-options root=PARTUUID=x ro i915.modeset=1 i915.enable_dc=2 i915.enable_fbc=1 i915.enable_psr=1 i915.disable_power_well=0 i915.fastboot=1 nopti nospectre_v2 spectre_v2_user=off spec_store_bypass_disable=off l1tf=off</textarea></li>
+options root=PARTUUID=x ro i915.modeset=1 i915.enable_dc=2 i915.enable_fbc=1 i915.enable_psr=1 i915.disable_power_well=0 i915.fastboot=1 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier mds=off mitigations=off</textarea></li>
 	</ul>
 	<div class="green"><p>Those are a lot of boot options. If you're using kernel 5.2, you can replace everything after i915 with just "mitigations=off". They're settings to reduce the impact of some theoretical security impacts, if you're reading this by the time there are real viruses which can affect you which make use of spectre/meltdown, then I highly recommend you do remove those mitigation disablers. The i915 ones help increase battery life.</p></div>
 	<h2>Post-installation recommendations</h2>
