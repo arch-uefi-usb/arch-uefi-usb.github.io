@@ -33,7 +33,7 @@
 		<li><code>mount -o noatime /dev/nvme0n1p2 /mnt/boot</code></li>
 		<li><code>curl -o /etc/pacman.d/mirrorlist "https://www.archlinux.org/mirrorlist/?country=JP&protocol=https&ip_version=6"</code></li>
 		<li><code>sed -i 's/#Server/Server/g' /etc/pacman.d/mirrorlist</code></li>
-		<li><textarea readonly cols="80" rows="5" class="red">pacstrap -ci /mnt base bash-completion chrome-gnome-shell ffmpeg gnome gnome-initial-setup gnome-tweaks gst-plugins-ugly gstreamer-vaapi intel-media-driver intel-ucode libva-utils lrzip mpv networkmanager ntfs-3g optipng p7zip powertop sudo systemd-resolvconf tlp unace unrar vulkan-intel xf86-video-intel xorg youtube-dl zstd</textarea></li>
+		<li><textarea readonly cols="80" rows="5" class="red">pacstrap -ci /mnt base bash-completion btrfs-progs chrome-gnome-shell compsize ffmpeg gnome gnome-initial-setup gnome-tweaks gst-plugins-ugly gstreamer-vaapi intel-media-driver intel-ucode libva-utils lrzip mpv networkmanager ntfs-3g optipng p7zip powertop sudo systemd-resolvconf tlp unace unrar vulkan-intel xf86-video-intel xorg youtube-dl zstd</textarea></li>
 		<li><code>rm -rf /mnt/etc/fonts/fonts.conf /mnt/etc/fonts/conf.d/*</code></li>
 		<li><code>unzip fonts.zip -d /mnt</code></li>
 		<li><code>sed -i 's/#en_DK.UTF-8/en_DK.UTF-8/g' /mnt/etc/locale.gen</code></li>
