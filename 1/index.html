@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Arch copy & paste for myself</title>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="theme-color" content="#ff8080">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta property="og:title" content="Arch copy & paste for myself">
+	<meta property="og:image" content="https://arch-uefi-usb.github.io/1/ogimage.png">
+	<meta property="og:image:width" content="128">
+	<meta property="og:image:height" content="128">
+	<meta property="og:locale" content="en_GB">
+	<meta property="og:locale:alternate" content="en">
+	<meta name="robots" content="index, follow">
+	<link rel="icon" type="image/png" href="favicon.png">
+	<link rel="stylesheet" type="text/css" href="css.css">
+</head>
+<body>
+	<div class="header fixed">
+		<h2>Arch copy & paste for myself</h2>
+	</div>
+	<div class="header hidden" id="start">
+		<h2>Arch copy & paste for myself</h2>
+	</div>
+	<div class="grey"><p>If you're using an existing Arch installation to install from, run <code>pacman -Sy linux arch-install-scripts gparted btrfs-progs tar zstd --needed</code>. Reboot if new linux version.</p></div>
+<div class="red">
+	<ul>
+		<li><code>mkfs.btrfs -n 64k /dev/</code></li>
+		<li><code>mount -o noatime,nobarrier,discard,autodefrag,compress=zstd:19,space_cache=v2 /dev/nvme0n1p9 /mnt</code></li>
+		<li><code>mkdir -p /mnt/boot /mnt/var/cache/pacman/pkg /mnt/var/log</code></li>
+		<li><code>mount -t tmpfs tmpfs /mnt/var/cache/pacman/pkg</code></li>
+		<li><code>mount -t tmpfs tmpfs /mnt/var/log</code></li>
+		<li><code>mount -o noatime /dev/nvme0n1p2 /mnt/boot</code></li>
+		<li><code>curl -o /etc/pacman.d/mirrorlist "https://www.archlinux.org/mirrorlist/?country=JP&protocol=https&ip_version=6"</code></li>
+		<li><code>sed -i 's/#Server/Server/g' /etc/pacman.d/mirrorlist</code></li>
+		<li><textarea readonly cols="80" rows="5" class="red">pacstrap -ci /mnt base bash-completion chrome-gnome-shell ffmpeg gnome gnome-initial-setup gnome-tweaks gst-plugins-ugly gstreamer-vaapi intel-media-driver intel-ucode libva-utils lrzip mpv networkmanager ntfs-3g optipng p7zip powertop sudo systemd-resolvconf tlp unace unrar vulkan-intel xf86-video-intel xorg youtube-dl zstd</textarea></li>
+		<li><code>rm -rf /mnt/etc/fonts/fonts.conf /mnt/etc/fonts/conf.d/*</code></li>
+		<li><code>unzip fonts.zip -d /mnt</code></li>
+		<li><code>sed -i 's/#en_DK.UTF-8/en_DK.UTF-8/g' /mnt/etc/locale.gen</code></li>
+		<li><code>sed -i 's/#WaylandEnable/WaylandEnable/g' /mnt/etc/gdm/custom.conf</code></li>
+		<li><code>echo computer > /mnt/etc/hostname</code></li>
+		<li><code>echo hwdec=auto > /mnt/etc/mpv/mpv.conf</code></li>
+		<li><code>genfstab -U -p /mnt >> /mnt/etc/fstab</code></li>
+</div>
+		<li><code class="red">gedit /mnt/etc/fstab</code> and add the following lines to the bottom of the file:</li>
+<div class="blue">
+		<li><textarea readonly cols="46" rows="2" class="blue">tmpfs /var/cache/pacman/pkg tmpfs defaults 0 0
+tmpfs /var/log tmpfs defaults 0 0</textarea></li>
+</div>
+<div class="red">
+		<li><code>rm -rf /mnt/boot/initramfs-linux-fallback.img</code></li>
+		<li><code>sed -i 's/HOOKS/#HOOKS/g' /mnt/etc/mkinitcpio.conf</code></li>
+		<li><code>sed -i "s/ 'fallback'//g" /mnt/etc/mkinitcpio.d/linux.preset</code></li>
+</div>
+		<li><code class="red">gedit /mnt/etc/mkinitcpio.conf</code> and add the following lines to the bottom of the file:</li>
+<div class="blue">
+		<li><textarea readonly cols="46" rows="3" class="blue">HOOKS=(systemd modconf block fsck filesystems)
+COMPRESSION="lz4"
+COMPRESSION_OPTIONS=(-9)</textarea></li>
+</div>
+<div class="red">
+		<li><code>arch-chroot /mnt</code></li>
+		<li><code>locale-gen</code></li>
+		<li><code>systemctl enable gdm NetworkManager tlp tlp-sleep</code></li>
+		<li><code>useradd -m -G wheel computer</code></li>
+		<li><code>passwd</code></li>
+		<li><code>passwd computer</code></li>
+		<li><code>EDITOR=nano visudo</code></li>
+</div>
+		<li>Uncomment '%wheel ALL=(ALL) ALL'</li>
+<div class="red">
+		<li><code>cd /boot</code></li>
+		<li><code>du -ab > $(date -I).txt</code></li>
+		<li><code>bootctl install</code></li>
+		<li><code>mkinitcpio -P</code></li>
+		<li><code>exit</code></li>
+		<li><code>echo "console-mode max" >> /mnt/boot/loader/loader.conf</code></li>
+		<li><code>blkid</code></li>
+		<li><code>gedit /mnt/boot/loader/entries/linux.conf</code></li>
+</div>
+<div class="blue">
+		<li><textarea readonly cols="80" rows="8" class="blue">title Linux
+linux /vmlinuz-linux
+initrd /intel-ucode.img
+initrd /initramfs-linux.img
+options root=PARTUUID=x ro i915.modeset=1 i915.enable_dc=2 i915.enable_fbc=1 i915.enable_psr=1 i915.disable_power_well=0 i915.fastboot=1 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier mds=off mitigations=off</textarea></li>
+</div>
+	</ul>
+	<h2>Post-installation recommendations</h2>
+	<ul>
+		<li><a href="https://extensions.gnome.org/extension/1262/bing-wallpaper-changer/">Bing Wallpaper Changer by neffo</a></li>
+		<li><a href="https://extensions.gnome.org/extension/1403/remove-alttab-delay/">Remove Alt+Tab Delay by tetrafox</a></li>
+		<li>Open gnome-tweaks and enable max and min window buttons, as well as setting mouse accel and fonts.</li>
+		<li>Use <code class="red">sudo pacman -Syu</code> to update and install, <code class="red">sudo pacman -Sys</code> to search, <code class="red">sudo pacman -R</code> to remove, and <code class="red">sudo pacman -R $(pacman -Qdtq)</code> to autoremove</li>
+	</ul>
+<hr>
+</body>
+</html>

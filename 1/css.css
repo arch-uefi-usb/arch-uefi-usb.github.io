@@ -1,0 +1,70 @@
+* {
+    font-family: system-ui,sans-serif;
+    margin: 0;
+    overflow-x: hidden;
+    padding: 0
+}
+
+.fixed {
+    position: fixed;
+    top: 0
+}
+
+.header {
+    background: #800000;
+    border-bottom: 1ch solid #000080;
+    color: #fff;
+    width: 100%
+}
+
+.headerlink {
+    color: #fff;
+    text-decoration: none
+}
+
+.hidden {
+    visibility: hidden
+}
+
+a,a:link,a:visited {
+    color: #000080
+}
+
+code,textarea {
+    font-family: Consolas,monospace
+}
+
+textarea {
+    color: #fff
+}
+
+.red {
+    background: rgba(128,0,0,.5)
+}
+
+.blue {
+    background: rgba(0,0,128,.5)
+}
+
+.grey {
+    background: rgba(128,128,128,.5)
+}
+
+.green {
+    background: rgba(0,128,0,.5)
+}
+
+h2,p,li {
+    padding-left: 1ch;
+    padding-right: 1ch
+}
+
+img,video {
+    display: block;
+    max-height: 90vh;
+    max-width: 100%
+}
+
+p,li {
+    line-height: 1.5
+}
